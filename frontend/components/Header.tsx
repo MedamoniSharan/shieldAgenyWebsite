@@ -152,17 +152,42 @@ const Header: React.FC<HeaderProps> = ({ activePage, setPage, isAuthenticated, o
                             </button>
                             {isUserMenuOpen && (
                                 <div className="absolute top-full right-0 mt-2 w-48 bg-zinc-800/95 backdrop-blur-lg border border-zinc-700 rounded-xl shadow-2xl p-2 z-[100]">
-                                    {roleStorage.getRole() === 'admin' && (
-                                        <button 
-                                            onClick={() => {
-                                                handleLinkClick('Admin');
-                                                setIsUserMenuOpen(false);
-                                            }} 
-                                            className="w-full text-left px-4 py-2 text-gray-200 rounded-md hover:bg-highlight-blue/50 hover:text-white transition-colors duration-200 text-sm cursor-pointer"
-                                        >
-                                            Dashboard
-                                        </button>
-                                    )}
+                                    {(() => {
+                                        const role = roleStorage.getRole();
+                                        // Only show Dashboard for admins - double check to prevent users from seeing it
+                                        if (role === 'admin') {
+                                            return (
+                                                <button 
+                                                    onClick={() => {
+                                                        // Additional safety check before navigation
+                                                        const currentRole = roleStorage.getRole();
+                                                        if (currentRole === 'admin') {
+                                                            handleLinkClick('Admin');
+                                                        } else {
+                                                            // If role changed, redirect to home
+                                                            handleLinkClick('Home');
+                                                        }
+                                                        setIsUserMenuOpen(false);
+                                                    }} 
+                                                    className="w-full text-left px-4 py-2 text-gray-200 rounded-md hover:bg-highlight-blue/50 hover:text-white transition-colors duration-200 text-sm cursor-pointer"
+                                                >
+                                                    Dashboard
+                                                </button>
+                                            );
+                                        }
+                                        // For regular users, show a profile/home option instead
+                                        return (
+                                            <button 
+                                                onClick={() => {
+                                                    handleLinkClick('Home');
+                                                    setIsUserMenuOpen(false);
+                                                }} 
+                                                className="w-full text-left px-4 py-2 text-gray-200 rounded-md hover:bg-highlight-blue/50 hover:text-white transition-colors duration-200 text-sm cursor-pointer"
+                                            >
+                                                Home
+                                            </button>
+                                        );
+                                    })()}
                                     <button 
                                         onClick={() => {
                                             onLogout();

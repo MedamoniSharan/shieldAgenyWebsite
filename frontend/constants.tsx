@@ -424,17 +424,5 @@ export const ADMIN_SIDEBAR_LINKS: { label: AdminSection; icon: React.ElementType
     { label: 'Enquiries', icon: MailIcon },
 ];
 
-export const ADMIN_STATS: AdminStat[] = [
-    { title: 'Total Guards', value: '1,250', change: '+5.2%', changeType: 'increase', icon: UsersIcon },
-    { title: 'Active Clients', value: '82', change: '+2', changeType: 'increase', icon: BriefcaseIcon },
-    { title: 'Ongoing Training', value: '12', change: '-1', changeType: 'decrease', icon: GraduationCapIcon },
-    { title: 'Job Applications', value: '45', change: '+10', changeType: 'increase', icon: FileTextIcon },
-];
-
-export const GUARD_PROFILES: GuardProfile[] = [
-    { id: 'SA001', name: 'Michael Vance', location: 'Innovatech HQ', shift: 'Night', contact: '555-0101', status: 'Active', image: 'https://picsum.photos/seed/guard1/100/100' },
-    { id: 'SA002', name: 'Alicia Keys', location: 'Global Events Corp.', shift: 'Day', contact: '555-0102', status: 'Active', image: 'https://picsum.photos/seed/guard2/100/100' },
-    { id: 'SA003', name: 'Robert Downey', location: 'Pinnacle Properties', shift: 'Day', contact: '555-0103', status: 'On Leave', image: 'https://picsum.photos/seed/guard3/100/100' },
-    { id: 'SA004', name: 'Jennifer Aniston', location: 'Innovatech HQ', shift: 'Night', contact: '555-0104', status: 'Active', image: 'https://picsum.photos/seed/guard4/100/100' },
-    { id: 'SA005', name: 'Chris Evans', location: 'City Bank Tower', shift: 'Day', contact: '555-0105', status: 'Active', image: 'https://picsum.photos/seed/guard5/100/100' },
-];
+// Static data removed - all dashboard data is now fetched dynamically from the API
+// ADMIN_STATS and GUARD_PROFILES are no longer used as data is fetched from backend

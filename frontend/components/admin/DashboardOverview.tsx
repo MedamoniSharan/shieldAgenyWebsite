@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import AnimatedSection from '../ui/AnimatedSection';
-import { ADMIN_STATS } from '../../constants';
 import StatCard from './ui/StatCard';
+import { adminAPI, DashboardStats } from '../../utils/api';
+import { UsersIcon, BriefcaseIcon, FileTextIcon, MailIcon, AwardIcon, ImageIcon } from '../../constants';
 
 const BarChartPlaceholder = () => (
     <div className="w-full h-64 bg-white/5 border border-white/10 rounded-lg p-4 flex items-end space-x-2">
@@ -24,6 +25,63 @@ const PieChartPlaceholder = () => (
 
 
 const DashboardOverview: React.FC = () => {
+    const [stats, setStats] = useState<DashboardStats | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const response = await adminAPI.getDashboardStats();
+                setStats(response.data);
+            } catch (err: any) {
+                setError(err.message || 'Failed to load dashboard statistics');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStats();
+    }, []);
+
+    if (loading) {
+        return (
+            <div>
+                <AnimatedSection>
+                    <h1 className="text-3xl font-bold mb-6">Dashboard Overview</h1>
+                </AnimatedSection>
+                <div className="text-center py-12">
+                    <p className="text-gray-300">Loading dashboard statistics...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div>
+                <AnimatedSection>
+                    <h1 className="text-3xl font-bold mb-6">Dashboard Overview</h1>
+                </AnimatedSection>
+                <div className="text-center py-12">
+                    <p className="text-red-400">{error}</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!stats) {
+        return null;
+    }
+
+    const statCards = [
+        { title: 'Total Guards', stat: stats.totalGuards, icon: UsersIcon },
+        { title: 'Active Guards', stat: stats.activeGuards, icon: UsersIcon },
+        { title: 'Job Applications', stat: stats.totalApplications, icon: FileTextIcon },
+        { title: 'Website Enquiries', stat: stats.totalEnquiries, icon: MailIcon },
+    ];
+
     return (
         <div>
             <AnimatedSection>
@@ -31,9 +89,15 @@ const DashboardOverview: React.FC = () => {
             </AnimatedSection>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {ADMIN_STATS.map((stat, index) => (
-                    <AnimatedSection key={stat.title} delay={`delay-${index * 100}`}>
-                        <StatCard {...stat} />
+                {statCards.map((card, index) => (
+                    <AnimatedSection key={card.title} delay={`delay-${index * 100}`}>
+                        <StatCard 
+                            title={card.title}
+                            value={card.stat.value}
+                            change={card.stat.change}
+                            changeType={card.stat.changeType}
+                            icon={card.icon}
+                        />
                     </AnimatedSection>
                 ))}
             </div>

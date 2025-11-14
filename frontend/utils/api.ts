@@ -42,6 +42,19 @@ async function apiRequest<T>(
     }
 
     if (!response.ok) {
+      // Handle 403 Forbidden (admin access required)
+      if (response.status === 403) {
+        // Clear invalid tokens and redirect
+        tokenStorage.removeToken();
+        roleStorage.removeRole();
+        throw new Error('Admin access required. You do not have permission to access this resource.');
+      }
+      // Handle 401 Unauthorized
+      if (response.status === 401) {
+        tokenStorage.removeToken();
+        roleStorage.removeRole();
+        throw new Error('Session expired. Please login again.');
+      }
       throw new Error(data.message || data.error || 'An error occurred');
     }
 
@@ -277,6 +290,55 @@ export const guardAPI = {
     }),
 };
 
+export type DashboardStats = {
+  totalGuards: { value: string; change: string; changeType: 'increase' | 'decrease' | 'neutral' };
+  activeGuards: { value: string; change: string; changeType: 'increase' | 'decrease' | 'neutral' };
+  totalApplications: { value: string; change: string; changeType: 'increase' | 'decrease' | 'neutral' };
+  totalEnquiries: { value: string; change: string; changeType: 'increase' | 'decrease' | 'neutral' };
+  totalCertifications: { value: string; change: string; changeType: 'increase' | 'decrease' | 'neutral' };
+  totalGalleryItems: { value: string; change: string; changeType: 'increase' | 'decrease' | 'neutral' };
+};
+
+export type Application = {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  message?: string;
+  resume: string;
+  status?: 'Pending' | 'Reviewed' | 'Interviewed' | 'Selected' | 'Rejected';
+  notes?: string;
+  submittedAt: string;
+};
+
+export type Training = {
+  _id: string;
+  title: string;
+  description: string;
+  instructor: string;
+  date: string;
+  duration: string;
+  location: string;
+  participants?: string[];
+  status: 'Scheduled' | 'In Progress' | 'Completed' | 'Cancelled';
+  createdAt: string;
+};
+
+export type Customer = {
+  _id: string;
+  companyName: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  address?: string;
+  serviceType: string;
+  contractStartDate: string;
+  contractEndDate?: string;
+  status: 'Active' | 'Inactive' | 'Pending' | 'Terminated';
+  notes?: string;
+  createdAt: string;
+};
+
 export const adminAPI = {
   changePassword: async (payload: {
     currentPassword: string;
@@ -285,6 +347,68 @@ export const adminAPI = {
     apiRequest<ApiResponse<{}>>('/auth/change-password', {
       method: 'PUT',
       body: JSON.stringify(payload),
+    }),
+  getDashboardStats: async () =>
+    apiRequest<ApiResponse<DashboardStats>>('/admin/dashboard/stats', {
+      method: 'GET',
+    }),
+};
+
+export const applicationAPI = {
+  getAll: async () =>
+    apiRequest<ApiResponse<Application[]>>('/admin/applications', {
+      method: 'GET',
+    }),
+  update: async (id: string, payload: { status?: string; notes?: string }) =>
+    apiRequest<ApiResponse<Application>>(`/admin/applications/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+  remove: async (id: string) =>
+    apiRequest<ApiResponse<{}>>(`/admin/applications/${id}`, {
+      method: 'DELETE',
+    }),
+};
+
+export const trainingAPI = {
+  getAll: async () =>
+    apiRequest<ApiResponse<Training[]>>('/admin/trainings', {
+      method: 'GET',
+    }),
+  create: async (payload: Omit<Training, '_id' | 'createdAt'>) =>
+    apiRequest<ApiResponse<Training>>('/admin/trainings', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  update: async (id: string, payload: Partial<Omit<Training, '_id' | 'createdAt'>>) =>
+    apiRequest<ApiResponse<Training>>(`/admin/trainings/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+  remove: async (id: string) =>
+    apiRequest<ApiResponse<{}>>(`/admin/trainings/${id}`, {
+      method: 'DELETE',
+    }),
+};
+
+export const customerAPI = {
+  getAll: async () =>
+    apiRequest<ApiResponse<Customer[]>>('/admin/customers', {
+      method: 'GET',
+    }),
+  create: async (payload: Omit<Customer, '_id' | 'createdAt'>) =>
+    apiRequest<ApiResponse<Customer>>('/admin/customers', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  update: async (id: string, payload: Partial<Omit<Customer, '_id' | 'createdAt'>>) =>
+    apiRequest<ApiResponse<Customer>>(`/admin/customers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+  remove: async (id: string) =>
+    apiRequest<ApiResponse<{}>>(`/admin/customers/${id}`, {
+      method: 'DELETE',
     }),
 };
 

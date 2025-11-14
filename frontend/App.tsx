@@ -13,6 +13,7 @@ import ContactPage from './components/pages/ContactPage';
 import AdminDashboard from './components/pages/AdminDashboard';
 import LoginPage from './components/pages/LoginPage';
 import SignUpPage from './components/pages/SignUpPage';
+import WhatsAppButton from './components/WhatsAppButton';
 import { authAPI, tokenStorage, roleStorage } from './utils/api';
 
 const App: React.FC = () => {
@@ -70,10 +71,12 @@ const App: React.FC = () => {
 
     const handlePageChange = (page: Page, subPageId?: string) => {
         if (page === 'Admin') {
+            // Strict check: Only allow admin access
             const role = roleStorage.getRole();
             if (!isAuthenticated || role !== 'admin') {
-                setForceAdminLogin(true);
-                setCurrentPage('Login');
+                // User tried to access admin - redirect to home instead of login
+                console.warn('Unauthorized access attempt to admin dashboard');
+                setCurrentPage('Home');
                 setActiveSubPage(null);
                 setIsFading(false);
                 return;
@@ -148,7 +151,7 @@ const App: React.FC = () => {
             case 'Gallery':
                 return <CertificationsPage />;
             case 'Careers':
-                return <CareersPage subPageId={activeSubPage || 'openings'} setPage={handlePageChange} />;
+                return <CareersPage subPageId={activeSubPage || 'openings'} setPage={handlePageChange} isAuthenticated={isAuthenticated} />;
             case 'Contact':
                 return <ContactPage />;
             default:
@@ -156,7 +159,45 @@ const App: React.FC = () => {
         }
     };
 
+    // Verify admin access when on Admin page
+    useEffect(() => {
+        if (currentPage === 'Admin') {
+            const verifyAdmin = async () => {
+                const role = roleStorage.getRole();
+                if (!isAuthenticated || role !== 'admin') {
+                    setForceAdminLogin(true);
+                    handlePageChange('Login');
+                    return;
+                }
+                
+                // Additional verification: Check with backend to prevent role tampering
+                try {
+                    const response = await authAPI.adminGetMe();
+                    if (!response.data || response.data.role !== 'admin') {
+                        handleLogout();
+                        handlePageChange('Home');
+                    }
+                } catch (error) {
+                    // Backend verification failed - user is not admin
+                    handleLogout();
+                    handlePageChange('Home');
+                }
+            };
+            
+            verifyAdmin();
+        }
+    }, [currentPage, isAuthenticated, handlePageChange, handleLogout]);
+
     if (currentPage === 'Admin') {
+        // Double-check: Ensure only admins can access admin dashboard
+        const role = roleStorage.getRole();
+        if (!isAuthenticated || role !== 'admin') {
+            // Redirect to login if not admin
+            setForceAdminLogin(true);
+            setCurrentPage('Login');
+            return <LoginPage setPage={handlePageChange} onLoginSuccess={handleLoginSuccess} isAdmin={true} />;
+        }
+        
         return <AdminDashboard setPage={handlePageChange} onLogout={handleLogout} />;
     }
     
@@ -187,6 +228,8 @@ const App: React.FC = () => {
                     {renderPublicPage()}
                 </main>
                 <Footer setPage={handlePageChange} />
+                {/* WhatsApp Button - Shows on all public user pages */}
+                <WhatsAppButton />
             </div>
         </div>
     );

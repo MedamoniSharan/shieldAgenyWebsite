@@ -5,7 +5,7 @@ import React, { ReactNode } from 'react';
 // This makes the component more flexible and solves the error when used in forms.
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     children: ReactNode;
-    variant?: 'primary' | 'secondary';
+    variant?: 'primary' | 'secondary' | 'danger';
 }
 
 const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', className = '', ...props }) => {
@@ -14,6 +14,7 @@ const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', classNam
     const variantClasses = {
         primary: 'bg-highlight-blue hover:bg-blue-500 text-white shadow-highlight-blue/30',
         secondary: 'bg-accent-gold text-primary-black shadow-accent-gold/30 hover:shadow-[0_0_15px_#d4af37]',
+        danger: 'bg-red-600 hover:bg-red-700 text-white shadow-red-600/30',
     };
 
     return (

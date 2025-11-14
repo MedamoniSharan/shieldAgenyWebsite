@@ -45,7 +45,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ setPage }) => {
 
     return (
         <section 
-            className="relative h-screen w-full overflow-hidden"
+            className="relative min-h-[70vh] md:h-screen w-full overflow-hidden"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
@@ -67,44 +67,47 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ setPage }) => {
             ))}
 
             {/* Content Overlay */}
-            <div className="relative z-20 h-full flex items-center justify-center text-center text-white p-4">
+            <div className="relative z-20 h-full flex items-start md:items-center justify-start md:justify-center text-white px-6 sm:px-8 md:px-12 pt-24 sm:pt-28 md:pt-0 pb-16">
                  <div 
                     key={currentIndex} // Re-trigger animation on slide change
-                    className="relative p-8 max-w-3xl w-full animate-slide-up-fade-in"
+                    className="relative max-w-2xl md:max-w-3xl w-full animate-slide-up-fade-in text-left md:text-center space-y-5"
                  >
-                    <h1 className="text-4xl md:text-6xl font-bold mb-4" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                    <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold leading-tight" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
                        {CAROUSEL_SLIDES[currentIndex].title}
                     </h1>
-                    <p className="text-md md:text-lg max-w-2xl mx-auto mb-8 text-gray-200" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
+                    <p className="text-sm sm:text-base md:text-lg md:max-w-2xl md:mx-auto text-gray-200" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
                         {CAROUSEL_SLIDES[currentIndex].description}
                     </p>
-                    <Button 
-                        onClick={() => setPage(CAROUSEL_SLIDES[currentIndex].ctaPage, CAROUSEL_SLIDES[currentIndex].ctaSubPageId)} 
-                        variant="secondary"
-                    >
-                        {CAROUSEL_SLIDES[currentIndex].ctaText}
-                    </Button>
+                    <div className="flex md:justify-center">
+                        <Button 
+                            onClick={() => setPage(CAROUSEL_SLIDES[currentIndex].ctaPage, CAROUSEL_SLIDES[currentIndex].ctaSubPageId)} 
+                            variant="secondary"
+                            className="min-w-[10rem] py-3 text-sm sm:text-base"
+                        >
+                            {CAROUSEL_SLIDES[currentIndex].ctaText}
+                        </Button>
+                    </div>
                 </div>
             </div>
 
             {/* Navigation Arrows */}
             <button 
                 onClick={prevSlide} 
-                className="absolute z-30 top-1/2 left-4 md:left-8 transform -translate-y-1/2 bg-white/10 p-3 rounded-full hover:bg-white/20 transition-all duration-300 backdrop-blur-sm hover:shadow-lg hover:shadow-white/10"
+                className="hidden sm:flex absolute z-30 top-1/2 left-4 md:left-8 transform -translate-y-1/2 bg-white/10 p-3 rounded-full hover:bg-white/20 transition-all duration-300 backdrop-blur-sm hover:shadow-lg hover:shadow-white/10"
                 aria-label="Previous slide"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
             <button 
                 onClick={nextSlide} 
-                className="absolute z-30 top-1/2 right-4 md:right-8 transform -translate-y-1/2 bg-white/10 p-3 rounded-full hover:bg-white/20 transition-all duration-300 backdrop-blur-sm hover:shadow-lg hover:shadow-white/10"
+                className="hidden sm:flex absolute z-30 top-1/2 right-4 md:right-8 transform -translate-y-1/2 bg-white/10 p-3 rounded-full hover:bg-white/20 transition-all duration-300 backdrop-blur-sm hover:shadow-lg hover:shadow-white/10"
                 aria-label="Next slide"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
             </button>
 
             {/* Pagination Dots */}
-            <div className="absolute z-30 bottom-8 left-1/2 -translate-x-1/2 flex space-x-3">
+            <div className="absolute z-30 bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex space-x-2 sm:space-x-3">
                 {CAROUSEL_SLIDES.map((_, index) => (
                     <button 
                         key={index}

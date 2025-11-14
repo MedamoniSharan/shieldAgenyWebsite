@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AdminSection, Page } from '../../types';
+import { roleStorage } from '../../utils/api';
 
 import AdminSidebar from '../admin/AdminSidebar';
 import AdminHeader from '../admin/AdminHeader';
@@ -23,6 +24,36 @@ interface AdminDashboardProps {
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ setPage, onLogout }) => {
     const [activeSection, setActiveSection] = useState<AdminSection>('Dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+    // Verify admin access on mount and verify with backend
+    useEffect(() => {
+        const verifyAdminAccess = async () => {
+            const role = roleStorage.getRole();
+            if (role !== 'admin') {
+                // User is not an admin, redirect to home
+                onLogout();
+                setPage('Home');
+                return;
+            }
+
+            // Double-check with backend to prevent role tampering
+            try {
+                const { authAPI } = await import('../../utils/api');
+                const response = await authAPI.adminGetMe();
+                if (!response.data || response.data.role !== 'admin') {
+                    // Backend says user is not admin, clear everything
+                    onLogout();
+                    setPage('Home');
+                }
+            } catch (error) {
+                // If backend verification fails, assume unauthorized
+                onLogout();
+                setPage('Home');
+            }
+        };
+
+        verifyAdminAccess();
+    }, [setPage, onLogout]);
 
     useEffect(() => {
         const handleResize = () => {

@@ -51,7 +51,29 @@ const LoginPage: React.FC<LoginPageProps> = ({ setPage, onLoginSuccess, isAdmin 
             // Store token and role
             tokenStorage.setToken(response.token);
             if (response.data?.role) {
-                roleStorage.setRole(response.data.role);
+                // Ensure role is set correctly - never allow user to have admin role from user login
+                const role = response.data.role;
+                if (isAdmin && role !== 'admin') {
+                    // Admin login but got user role - error
+                    setError('Invalid credentials. Admin access required.');
+                    tokenStorage.removeToken();
+                    roleStorage.removeRole();
+                    setLoading(false);
+                    return;
+                }
+                if (!isAdmin && role === 'admin') {
+                    // User login but got admin role - this should never happen, but protect against it
+                    console.error('Security: User login returned admin role - rejecting');
+                    setError('Authentication error. Please try again.');
+                    tokenStorage.removeToken();
+                    roleStorage.removeRole();
+                    setLoading(false);
+                    return;
+                }
+                roleStorage.setRole(role);
+            } else {
+                // No role in response - set default based on login type
+                roleStorage.setRole(isAdmin ? 'admin' : 'user');
             }
             
             // Call success callback

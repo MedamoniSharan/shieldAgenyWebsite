@@ -81,7 +81,7 @@ export interface AdminStat {
     title: string;
     value: string;
     change: string;
-    changeType: 'increase' | 'decrease';
+    changeType: 'increase' | 'decrease' | 'neutral';
     icon: ElementType;
 }
 

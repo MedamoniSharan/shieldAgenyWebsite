@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Page } from '../../types';
 import { JOB_OPENINGS } from '../../constants';
 import AnimatedSection from '../ui/AnimatedSection';
@@ -9,13 +9,22 @@ import RecruitmentProcedure from '../RecruitmentProcedure';
 interface CareersPageProps {
     subPageId: string;
     setPage: (page: Page, subPageId?: string) => void;
+    isAuthenticated: boolean;
 }
 
-const CareersPage: React.FC<CareersPageProps> = ({ subPageId, setPage }) => {
+const CareersPage: React.FC<CareersPageProps> = ({ subPageId, setPage, isAuthenticated }) => {
     const [expandedJob, setExpandedJob] = useState<number | null>(0);
     const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
     const [resume, setResume] = useState<File | null>(null);
     const [formSubmitted, setFormSubmitted] = useState(false);
+    const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+
+    // Hide auth prompt when user becomes authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            setShowAuthPrompt(false);
+        }
+    }, [isAuthenticated]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -30,11 +39,36 @@ const CareersPage: React.FC<CareersPageProps> = ({ subPageId, setPage }) => {
     
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Check if user is authenticated
+        if (!isAuthenticated) {
+            setShowAuthPrompt(true);
+            return;
+        }
+        
         // Here you would typically handle form submission to a backend
         console.log({ ...formData, resume: resume?.name });
         setFormSubmitted(true);
         setFormData({ name: '', email: '', phone: '', message: '' });
         setResume(null);
+    };
+
+    const handleApplyNowClick = (page: Page, subPageId?: string) => {
+        if (!isAuthenticated) {
+            setShowAuthPrompt(true);
+            // Scroll to apply section after a brief delay
+            setTimeout(() => {
+                const element = document.getElementById('apply');
+                if (element) {
+                    const header = document.querySelector('header > nav');
+                    const headerHeight = header ? header.getBoundingClientRect().height : 100;
+                    const y = element.getBoundingClientRect().top + window.scrollY - headerHeight - 20;
+                    window.scrollTo({ top: y, behavior: 'smooth' });
+                }
+            }, 100);
+        } else {
+            setPage(page, subPageId);
+        }
     };
 
     return (
@@ -75,14 +109,34 @@ const CareersPage: React.FC<CareersPageProps> = ({ subPageId, setPage }) => {
                 </section>
                 
                 {/* Recruitment Procedure */}
-                <RecruitmentProcedure setPage={setPage} />
+                <RecruitmentProcedure setPage={handleApplyNowClick} />
 
                 {/* Apply Now Form */}
                 <section id="apply" className="mb-12">
                      <AnimatedSection>
                         <h2 className="text-4xl font-bold text-center mb-12"><span className="text-highlight-blue">Apply</span> Now</h2>
                         <div className="max-w-2xl mx-auto bg-glass-bg border border-white/10 rounded-lg p-8">
-                             {formSubmitted ? (
+                            {showAuthPrompt && !isAuthenticated ? (
+                                <div className="text-center p-8">
+                                    <div className="mb-6">
+                                        <svg className="w-16 h-16 mx-auto text-accent-gold mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-white mb-4">Authentication Required</h3>
+                                    <p className="text-gray-300 mb-6">
+                                        Please sign up and sign in to your account before submitting an application.
+                                    </p>
+                                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                        <Button onClick={() => { setShowAuthPrompt(false); setPage('SignUp'); }} variant="secondary">
+                                            Sign Up
+                                        </Button>
+                                        <Button onClick={() => { setShowAuthPrompt(false); setPage('Login'); }} variant="primary">
+                                            Sign In
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : formSubmitted ? (
                                 <div className="text-center p-8">
                                     <h3 className="text-2xl font-bold text-accent-gold mb-4">Thank You!</h3>
                                     <p className="text-gray-200">Your application has been submitted successfully. We will be in touch if your qualifications match our needs.</p>
